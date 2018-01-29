@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pause-resume-config
+  namespace: default
+data:
+  conf.py: |
+    env = "CSC test env"
+    mongodb_addr = "mongodb://root:meouqasdkf@data1,data2,data3/pull?replicaSet=replica1&authSource=admin"
+    play_addr = "http://10.233.1.2:11292"
+    concurrent = 1

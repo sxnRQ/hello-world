@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pause-stock-pt
+  namespace: default  
+spec:
+  nodeSelector:
+    type: data
+  restartPolicy: Never
+  hostNetwork: true
+  containers:
+  - name: pause-stock-pt
+    securityContext:
+      privileged: true
+    image: registry.ricequant.com:5000/pause-resume:0.1.8
+    imagePullPolicy: IfNotPresent
+    env:
+    - name: PYTHONPATH
+      value: /tmp
+    - name: TZ
+      value: Asia/Shanghai
+    volumeMounts:
+    - name: log
+      mountPath: /logs/
+    - name: config
+      mountPath: /tmp/
+    command:
+    - pause_resume_tool
+    - pause
+    - -r
+    - pt
+    - -s
+    - stock
+  volumes:
+  - name: log
+    hostPath:
+      path: /logs
+  - name: config
+    configMap:
+      name: pause-resume-config
+      items:
+        - key: conf.py
+          path: conf.py     
+    
