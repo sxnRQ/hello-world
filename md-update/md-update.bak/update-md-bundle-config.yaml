@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: update-md-bundle-config
+  namespace: default
+data:
+  update_bundle.sh: |
+    #!/usr/bin/env  sh
+    set -e
+    echo "start  ......."
+    test  $# -eq 0 &&  echo "base usage!!!" &&  exit 1
+    if [ ! -L "$1/bundle" ];then
+        echo "error  not $1/bundle link found"
+    fi
+    cd "$1"
+
+    DIR=$1
+    BASE=$(readlink ./bundle)
+    BUNDLE="./bundle_a"
+
+    echo "BASE=$BASE"
+    echo "BUNDLE=$BUNDLE"
+
+    if [ "$BASE" == "$BUNDLE" ];then
+       BUNDLE="bundle_b"
+       echo 'BASE == BUNDLE'
+    else
+       BUNDLE="bundle_a"
+       echo 'BASE != BUNDLE'
+    fi
+    DEST=${DIR}/${BUNDLE}
+    echo "start to sync to $DEST"
+    rsync -razP --port "58888" xyzq@10.233.1.24::historical_data/bundle/ "$DEST/"
+    cd "${DIR}"
+    ln -snf  "./${BUNDLE}"  "./bundle"

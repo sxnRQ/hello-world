@@ -1,0 +1,48 @@
+apiVersion: batch/v2alpha1
+kind: CronJob
+metadata:
+  name: update-md-bundle
+  namespace: default
+spec:
+  schedule: "0 */4 * * *"
+  concurrencyPolicy: Replace
+  successfulJobsHistoryLimit: 50
+  failedJobsHistoryLimit: 50
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          nodeSelector:
+            kubernetes.io/hostname: bt1
+          restartPolicy: OnFailure
+          hostNetwork: true
+          containers:
+          - name: md-update
+            securityContext:
+              privileged: true
+            image: registry.ricequant.com:5000/rsync-ssh
+            env:
+            - name: RSYNC_PASSWORD
+              value: eZ8SLuOCWJKHI5BStKbfcBrbIbkVGE
+            - name: TZ
+              value: Asia/Shanghai
+            volumeMounts:
+            - name: datapath
+              mountPath: /data/
+            - name: updatebundle 
+              mountPath: /tmp/
+            args:
+            - sh 
+            - -x 
+            - /tmp/update_bundle.sh 
+            - /data/rqalpha/data
+          volumes:
+          - name: datapath
+            hostPath:
+              path: /data/
+          - name: updatebundle 
+            configMap:
+              name: update-md-bundle-config
+              items:
+                - key: update_bundle.sh
+                  path: update_bundle.sh

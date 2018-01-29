@@ -1,0 +1,44 @@
+apiVersion: batch/v2alpha1
+kind: CronJob
+metadata:
+  name: update-md-corporate-events
+  namespace: default
+spec:
+  schedule: "0 */4 * * *"
+  concurrencyPolicy: Replace
+  successfulJobsHistoryLimit: 50
+  failedJobsHistoryLimit: 50
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          nodeSelector:
+            kubernetes.io/hostname: bt1
+          restartPolicy: OnFailure
+          hostNetwork: true
+          containers:
+          - name: md-update
+            securityContext:
+              privileged: true
+            image: registry.ricequant.com:5000/rsync-ssh
+            env:
+            - name: RSYNC_PASSWORD
+              value: eZ8SLuOCWJKHI5BStKbfcBrbIbkVGE
+            - name: TZ
+              value: Asia/Shanghai
+            volumeMounts:
+            - name: datapath
+              mountPath: /data/
+            args:
+            - rsync
+            - -razP 
+            - --port
+            - "58888"
+            - xyzq@10.233.1.24::historical_data_unadjusted/corporate_events
+            - /data/hd/  
+          volumes:
+          - name: datapath
+            hostPath:
+              path: /data/
+
+              
